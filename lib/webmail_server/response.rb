@@ -11,7 +11,7 @@ module WebMailServer
     305 => "Use Proxy", 306 => "Switch Proxy", 307 => "Temporary Redirect",
     308 => "Permanent Redirect", 400 => "Bad Request", 401 => "Unauthorized",
     402 => "Payment Required", 403 => "Forbidden", 404 => "Not Found",
-    405 => "Method Not Allowed", 406 => "Not Acceptable", 
+    405 => "Method Not Allowed", 406 => "Not Acceptable",
     407 => "Proxy Authentication Required", 408 => "Request Timeout",
     409 => "Conflict", 410 => "Gone", 411 => "Length Required",
     412 => "Precondition Failed", 413 => "Request Entity Too Large",

@@ -2,7 +2,7 @@ module WebMailServer
   # This class handles the HTTP requests
   # It follows the HTTP protocol naming
   class Request
-    attr_reader :method, :request_uri, :http_version, :header_fields
+    attr_reader :method, :request_uri, :http_version, :header_fields, :data
 
     # Initializes the request
     #
@@ -18,6 +18,10 @@ module WebMailServer
       end
 
       @header_fields = parse_header_fields(header_fields)
+    end
+
+    def parse_data(data)
+      data
     end
 
     # @return [boolean] Boolean that indicates whether the request has a valid
