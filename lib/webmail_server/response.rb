@@ -28,7 +28,13 @@ module WebMailServer
 
     # Initializes the most basic fields of the HTTP response
     # (Any field can be re-configured through header_field method)
-    def initialize
+    def initialize(request)
+      @request = request
+      create_headers
+      create_body
+    end
+
+    def create_headers
       current_time = Time.new.utc.strftime("%a, %d %b %Y %H:%M:%S")
       @http_version = "HTTP/1.1"
       @header_field = Hash.new
@@ -69,8 +75,76 @@ module WebMailServer
       @header_field[:Via] = ""
       @header_field[:Warning] = ""
       @header_field[:'WWW-Authenticate'] = ""
-
       @status_line = "#{@http_version} #{@status_code} #{STATUS_CODE[@status_code.to_i]}"
+    end
+
+
+    def create_body
+      puts @request.request_uri
+      puts @request.method
+      if @request.request_uri == "/index" && @request.method == "GET"
+        create_index_body
+      elsif @request.request_uri == "/send_mail" && @request.method == "POST"
+        create_sent_mail_body
+      else
+        create_default_body
+      end
+    end
+
+    def create_index_body
+      filepath = "#{WebMailServer::SERVER_ROOT}index.html"
+      puts filepath
+      file = File.open filepath
+      self.body = HTTPBody.new(file.read).to_s
+      self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
+      file.close
+    end
+
+    def create_sent_mail_body
+      filepath = "#{WebMailServer::SERVER_ROOT}sent_mail.html"
+      file = File.open filepath
+      self.body = HTTPBody.new(file.read)
+      self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
+      file.close
+    end
+
+    def create_default_body
+      filepath = "#{WebMailServer::SERVER_ROOT}#{@request.request_uri}"
+      if File.exists? filepath
+        case @request.request_uri
+        when /\.(?:html)$/i
+          file = File.open filepath
+          self.body = Body.new file.read
+          self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
+          file.close
+        when /\.(?:css)$/i
+          file = File.open filepath
+          self.body = Body.new file.read
+          self.header_field[:'Content-Type'] = "text/css"
+          file.close
+        when /\.(?:js)$/i
+          file = File.open filepath
+          self.body = Body.new file.read
+          self.header_field[:'Content-Type'] = "text/javascript"
+          file.close
+        when /\.(?:jpg)$/i
+          file = File.open(filepath, "rb")
+          self.body = Body.new file.read
+          self.header_field[:'Accept-Ranges'] = "bytes"
+          self.header_field[:'Content-Type'] = "image/jpeg"
+          file.close
+        when /\.(?:png)$/i
+          file = File.open(filepath, "rb")
+          self.body = Body.new file.read
+          self.header_field[:'Accept-Ranges'] = "bytes"
+          self.header_field[:'Content-Type'] = "image/png"
+          file.close
+        else
+          self.body = Body.new "Wrong file!"
+        end
+      else
+        self.body = Body.new "Could not find file!"
+      end
     end
 
     def header_fields
@@ -85,5 +159,40 @@ module WebMailServer
     def to_s
       response = "#{@status_line}\n#{@header_fields}\n#{@body}"
     end
+
+    private
+
+    class HTTPBody
+      attr_accessor :html_document, :html_header, :html_body
+
+      def initialize(html_input)
+        @html_document = html_input
+        parse_html_page
+      end
+
+      def parse_html_page
+        @html_header = Element.new(@html_document, "<head>", "</head>")
+        @html_body = Element.new(@html_document, "<body>", "</body>")
+      end
+
+      def to_s
+        @html_document
+      end
+
+      private
+
+      class Element
+        attr_reader :range, :element, :content
+        def initialize(document, element1, element2)
+          @element = [element1, element2]
+          start_position = document.index(element1) + 6
+          end_position = document.index(element2)
+          @range = Range.new(start_position, end_position)
+          @content = document[@range]
+        end
+      end
+    end
+
+
   end
 end

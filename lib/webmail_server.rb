@@ -9,7 +9,7 @@ require_relative 'webmail_server/response'
 
 module WebMailServer
 
-  SERVER_ROOT = File.expand_path File.dirname(__FILE__)
+  SERVER_ROOT = "#{File.expand_path(File.dirname(__FILE__))}/assets/"
 
   # Starts and initiates the HTTP server
   class HTTPServer
@@ -23,7 +23,6 @@ module WebMailServer
       @logger = Logger.new(STDOUT)
       @logger.level = Logger::DEBUG
       @port = port
-      @server_root = "#{SERVER_ROOT}/assets/"
     end
 
     # Starts the server ready to accept new connections
@@ -31,13 +30,13 @@ module WebMailServer
       @logger.debug { "Opening server" }
       @tcp_server = TCPServer.new("0.0.0.0", @port)
       @logger.debug { "Listening to 0.0.0.0 port #{@port}
-                      pointing #{@server_root}" }
+                      pointing #{SERVER_ROOT}" }
       answer_worker = AnswerWorker.new
       client = nil
       loop do
         client = @tcp_server.accept
         @logger.debug { "Server accepted" }
-        answer_worker.start(client, @server_root)
+        answer_worker.start(client)
       end
       stop
     end

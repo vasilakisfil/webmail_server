@@ -21,7 +21,7 @@ module WebMailServer
     end
 
     def parse_data(data)
-      data
+      @data = data
     end
 
     # @return [boolean] Boolean that indicates whether the request has a valid
@@ -31,7 +31,7 @@ module WebMailServer
     end
 
     def to_s
-      @full_request
+      "#{@full_request}#{@data}"
     end
 
     private
