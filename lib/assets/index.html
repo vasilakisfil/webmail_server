@@ -2,15 +2,83 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Hello World</title>
+    <title>Mail Web Server</title>
+    <link rel="stylesheet" href="foundation/css/normalize.css">
+    <link rel="stylesheet" href="foundation/css/foundation.css">
+
+    <script src="foundation/js/vendor/modernizr.js"></script>
   </head>
   <body>
-    <form action="/send_mail" method="POST">
-      A Greeting: <input type="text" name="greet">
-      <br/>
-      Your Name: <input type="text" name="name">
-      <br/>
-      <input type="submit">
+    <br>
+    <br>
+    <br>
+    <br>
+
+    <form>
+      <div class="row">
+        <div class="small-12 columns">
+          <fieldset>
+            <legend>Mail Web Server</legend>
+            <div class="row">
+              <div class="small-3 columns">
+                <label for="right-label" class="right inline">From</label>
+              </div>
+              <div class="small-9 columns">
+                <input type="text" id="right-label" placeholder="username@example.com">
+              </div>
+            </div>
+            <div class="row">
+              <div class="small-3 columns">
+                <label for="right-label" class="right inline">To</label>
+              </div>
+              <div class="small-9 columns">
+                <input type="text" id="right-label" placeholder="receiver@example.com">
+              </div>
+            </div>
+            <div class="row">
+              <div class="small-3 columns">
+                <label for="right-label" class="right inline">Subject</label>
+              </div>
+              <div class="small-9 columns">
+                <input type="text" id="right-label" placeholder="Hi there!">
+              </div>
+            </div>
+            <div class="row">
+              <div class="small-3 columns">
+                <label for="right-label" class="right inline">Message</label>
+              </div>
+              <div class="small-9 columns">
+                <textarea placeholder="small-12.columns"></textarea>
+              </div>
+            </div>
+            <div class="row">
+              <div class="small-3 columns">
+                <label for="right-label" class="right inline">SMTP Server</label>
+              </div>
+              <div class="small-5 columns">
+                <input type="text" id="right-label" placeholder="smpt_server@kth.se">
+              </div>
+              <div class="small-4 columns"></div>
+            </div>
+            <div class="row">
+              <div class="small-3 columns">
+                <label for="right-label" class="right inline">Delay</label>
+              </div>
+              <div class="small-5 columns">
+                <input type="text" id="right-label" placeholder="300">
+              </div>
+              <div class="small-4 columns"></div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
     </form>
+
+
+    <script src="foundation/js/vendor/jquery.js"></script>
+    <script src="foundation/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+    </script>
   </body>
 </html>

@@ -2,14 +2,12 @@ require 'socket'
 require 'parseconfig'
 require 'logger'
 
-
+require_relative 'webmail_server/configuration'
 require_relative 'webmail_server/answer_worker'
 require_relative 'webmail_server/request'
 require_relative 'webmail_server/response'
 
 module WebMailServer
-
-  SERVER_ROOT = "#{File.expand_path(File.dirname(__FILE__))}/assets/"
 
   # Starts and initiates the HTTP server
   class HTTPServer
@@ -30,7 +28,7 @@ module WebMailServer
       @logger.debug { "Opening server" }
       @tcp_server = TCPServer.new("0.0.0.0", @port)
       @logger.debug { "Listening to 0.0.0.0 port #{@port}
-                      pointing #{SERVER_ROOT}" }
+                      pointing #{ROOT_DIR}" }
       answer_worker = AnswerWorker.new
       client = nil
       loop do
@@ -46,8 +44,5 @@ module WebMailServer
       @tcp_server.close
       @logger.debug { "Server Closed" }
     end
-
   end
 end
-
-

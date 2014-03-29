@@ -92,58 +92,47 @@ module WebMailServer
     end
 
     def create_index_body
-      filepath = "#{WebMailServer::SERVER_ROOT}index.html"
-      puts filepath
-      file = File.open filepath
-      self.body = HTTPBody.new(file.read).to_s
+      filepath = "#{WebMailServer::ROOT_DIR}/index.html"
+      self.body = HTTPBody.new(filepath)
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
-      file.close
     end
 
     def create_sent_mail_body
-      filepath = "#{WebMailServer::SERVER_ROOT}sent_mail.html"
-      file = File.open filepath
-      self.body = HTTPBody.new(file.read)
+      filepath = "#{WebMailServer::ROOT_DIR}/mail_sent.html"
+      self.body = HTTPBody.new(filepath)
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
-      file.close
     end
 
     def create_default_body
-      filepath = "#{WebMailServer::SERVER_ROOT}#{@request.request_uri}"
+      filepath = "#{WebMailServer::ROOT_DIR}#{@request.request_uri}"
       if File.exists? filepath
         case @request.request_uri
         when /\.(?:html)$/i
-          file = File.open filepath
-          self.body = Body.new file.read
+          self.body = HTTPBody.new(filepath)
           self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
-          file.close
         when /\.(?:css)$/i
-          file = File.open filepath
-          self.body = Body.new file.read
+          self.body = HTTPBody.new(filepath)
           self.header_field[:'Content-Type'] = "text/css"
-          file.close
         when /\.(?:js)$/i
-          file = File.open filepath
-          self.body = Body.new file.read
-          self.header_field[:'Content-Type'] = "text/javascript"
-          file.close
+          self.body = HTTPBody.new(filepath)
+          self.header_field[:'Content-Type'] = "application/javascript"
         when /\.(?:jpg)$/i
           file = File.open(filepath, "rb")
-          self.body = Body.new file.read
+          self.body = file.read
           self.header_field[:'Accept-Ranges'] = "bytes"
           self.header_field[:'Content-Type'] = "image/jpeg"
           file.close
         when /\.(?:png)$/i
           file = File.open(filepath, "rb")
-          self.body = Body.new file.read
+          self.body = file.read
           self.header_field[:'Accept-Ranges'] = "bytes"
           self.header_field[:'Content-Type'] = "image/png"
           file.close
         else
-          self.body = Body.new "Wrong file!"
+          self.body = HTTPBody.new.error! "Wrong file!"
         end
       else
-        self.body = Body.new "Could not find file!"
+        self.body = HTTPBody.new.error! "Could not find file!"
       end
     end
 
@@ -163,36 +152,22 @@ module WebMailServer
     private
 
     class HTTPBody
-      attr_accessor :html_document, :html_header, :html_body
-
-      def initialize(html_input)
-        @html_document = html_input
-        parse_html_page
+      ERROR_P = "<p> </p>"
+      def initialize(filename=nil)
+        if filename.nil?
+          @document = File.read(DEFAULT_PAGE)
+        else
+          @document = File.read(filename)
+        end
       end
 
-      def parse_html_page
-        @html_header = Element.new(@html_document, "<head>", "</head>")
-        @html_body = Element.new(@html_document, "<body>", "</body>")
+      def error!(error)
+        @document.gsub!(ERROR_P, "<p> #{error} </p>")
       end
 
       def to_s
-        @html_document
-      end
-
-      private
-
-      class Element
-        attr_reader :range, :element, :content
-        def initialize(document, element1, element2)
-          @element = [element1, element2]
-          start_position = document.index(element1) + 6
-          end_position = document.index(element2)
-          @range = Range.new(start_position, end_position)
-          @content = document[@range]
-        end
+        @document.to_s
       end
     end
-
-
   end
 end

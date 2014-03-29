@@ -24,8 +24,8 @@ module WebMailServer
 
       puts request.data
       response = Response.new(request)
-      #puts; puts "Response from server"
-      #puts response.to_s
+      puts; puts "Response from server"
+      puts response.header_fields
       client.puts response.to_s
       client.close
     end
