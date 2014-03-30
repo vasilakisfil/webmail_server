@@ -80,8 +80,6 @@ module WebMailServer
 
 
     def create_body
-      puts @request.request_uri
-      puts @request.method
       if @request.request_uri == "/index" && @request.method == "GET"
         create_index_body
       elsif @request.request_uri == "/send_mail" && @request.method == "POST"

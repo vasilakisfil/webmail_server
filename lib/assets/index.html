@@ -14,7 +14,7 @@
     <br>
     <br>
 
-    <form>
+    <form action="/send_mail" method="POST" enctype="multipart/form-data" >
       <div class="row">
         <div class="small-12 columns">
           <fieldset>
@@ -24,7 +24,7 @@
                 <label for="right-label" class="right inline">From</label>
               </div>
               <div class="small-9 columns">
-                <input type="text" id="right-label" placeholder="username@example.com">
+                <input type="text" id="right-label" name="from" value="username@example.com" placeholder="username@example.com">
               </div>
             </div>
             <div class="row">
@@ -32,7 +32,7 @@
                 <label for="right-label" class="right inline">To</label>
               </div>
               <div class="small-9 columns">
-                <input type="text" id="right-label" placeholder="receiver@example.com">
+                <input type="text" id="right-label" name="to" value="receiver@example.com" placeholder="receiver@example.com">
               </div>
             </div>
             <div class="row">
@@ -40,7 +40,7 @@
                 <label for="right-label" class="right inline">Subject</label>
               </div>
               <div class="small-9 columns">
-                <input type="text" id="right-label" placeholder="Hi there!">
+                <input type="text" id="right-label" name="subject" value="Recent news!" placeholder="Recent news!">
               </div>
             </div>
             <div class="row">
@@ -48,7 +48,7 @@
                 <label for="right-label" class="right inline">Message</label>
               </div>
               <div class="small-9 columns">
-                <textarea placeholder="small-12.columns"></textarea>
+                <textarea name="message" placeholder="Hi There! I have...">Hi there! I have...</textarea>
               </div>
             </div>
             <div class="row">
@@ -56,7 +56,7 @@
                 <label for="right-label" class="right inline">SMTP Server</label>
               </div>
               <div class="small-5 columns">
-                <input type="text" id="right-label" placeholder="smpt_server@kth.se">
+                <input type="text" id="right-label" name="smtp_server" value="smtp.ik2213.lab" placeholder="smtp.ik2213.lab">
               </div>
               <div class="small-4 columns"></div>
             </div>
@@ -65,9 +65,14 @@
                 <label for="right-label" class="right inline">Delay</label>
               </div>
               <div class="small-5 columns">
-                <input type="text" id="right-label" placeholder="300">
+                <input type="text" id="right-label" name="delay" value="300" placeholder="300">
               </div>
               <div class="small-4 columns"></div>
+            </div>
+            <div class="row">
+              <div class="small-6 small-offset-3 columns">
+                <input class="button" type="submit" value="Send Message" />
+              </div>
             </div>
           </fieldset>
         </div>

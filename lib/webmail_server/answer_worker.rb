@@ -19,13 +19,13 @@ module WebMailServer
     # @param server_root [string] The directory that the server points to
     def start(client)
       request = read_request(client)
-      #puts; puts "Request from browser"
+      puts; puts "Request from browser"
       #puts request.to_s
 
       puts request.data
       response = Response.new(request)
-      puts; puts "Response from server"
-      puts response.header_fields
+      #puts; puts "Response from server"
+      #puts response.header_fields
       client.puts response.to_s
       client.close
     end

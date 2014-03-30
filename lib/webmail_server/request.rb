@@ -21,7 +21,7 @@ module WebMailServer
     end
 
     def parse_data(data)
-      @data = data
+      @data = parse_multipart(data)
     end
 
     # @return [boolean] Boolean that indicates whether the request has a valid
@@ -113,6 +113,25 @@ module WebMailServer
 
       return header_fields
     end
+
+    #fix array message data
+    def parse_multipart(data)
+      array = data.split("\n")
+      random_str = array[0]
+      random_indices = array.each_index.select{|i| array[i].include? random_str}
+      values = {}
+      random_indices.each_index do |index|
+        description = array[random_indices[index]+1]
+        name_index = array[random_indices[index]+1].index("name=")
+        name = description[name_index..description.length].gsub("name=","").gsub("\"","")
+
+        values[name] = array[random_indices[index]+3...random_indices[index+1]]
+        break if index == random_indices.length-2
+      end
+      #values["message"] = values["message"].join("\n")
+      return values
+    end
+
 
 
   end
