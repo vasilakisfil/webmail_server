@@ -6,6 +6,7 @@ require_relative 'webmail_server/configuration'
 require_relative 'webmail_server/answer_worker'
 require_relative 'webmail_server/request'
 require_relative 'webmail_server/response'
+require_relative 'webmail_server/smtp_worker'
 
 module WebMailServer
 
