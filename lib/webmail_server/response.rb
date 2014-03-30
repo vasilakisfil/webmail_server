@@ -83,6 +83,8 @@ module WebMailServer
       if @request.request_uri == "/index" && @request.method == "GET"
         create_index_body
       elsif @request.request_uri == "/send_mail" && @request.method == "POST"
+        log = SMTPWorker.new(@request.data).send_email
+        puts log
         create_sent_mail_body
       else
         create_default_body

@@ -21,7 +21,11 @@ module WebMailServer
     end
 
     def parse_data(data)
-      @data = parse_multipart(data)
+      if @data
+        @data
+      else
+        @data = parse_multipart(data)
+      end
     end
 
     # @return [boolean] Boolean that indicates whether the request has a valid
@@ -114,7 +118,6 @@ module WebMailServer
       return header_fields
     end
 
-    #fix array message data
     def parse_multipart(data)
       array = data.split("\n")
       random_str = array[0]
@@ -128,8 +131,12 @@ module WebMailServer
         values[name] = array[random_indices[index]+3...random_indices[index+1]]
         break if index == random_indices.length-2
       end
-      #values["message"] = values["message"].join("\n")
-      return values
+      #strip \r from values
+      hash_values = {}
+      values.each do |key, value|
+        hash_values[key.gsub("\r","")] = value.first.gsub("\r","")
+      end
+      return hash_values
     end
 
 
