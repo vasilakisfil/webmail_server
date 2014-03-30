@@ -1,4 +1,3 @@
-server.rb
-
 .yardoc/
 doc/
+smtp_test.rb
