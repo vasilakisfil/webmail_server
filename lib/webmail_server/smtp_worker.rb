@@ -14,23 +14,32 @@ module WebMailServer
       opts["body"]           = opts["message"] || "Watch out in KTH !"
       opts["port"]         ||= 25
       @opts = opts
+      fix_mails_for_smtp
     end
 
     #add safety/validation by checking answer OK"
     def send_email
       log = ""
-      log += open_socket
-      log += write_helo
-      log += write_mail_from
-      log += write_mail_to
-      #log += write_subject
-      log += write_mail_data
-      log += write_quit
+      begin
+        log += open_socket
+        log += write_helo
+        log += write_mail_from
+        log += write_mail_to
+        #log += write_subject
+        log += write_mail_data
+        log += write_quit
+      rescue
+        puts log
+      end
       puts log
     end
 
-
     private
+
+    def fix_mails_for_smtp
+      opts["from"] = "<#{opts["from"]}>"
+      opts["to"] = "<#{opts["to"]}>"
+    end
 
     def open_socket
       @socket = TCPSocket.open(@opts["server"], @opts["port"])
@@ -38,17 +47,17 @@ module WebMailServer
     end
 
     def write_helo
-      @socket.puts("HELO client.smptp.ik2213.lab")
+      @socket.puts("HELO #{opts["HELO"]}")
       read_socket(@socket)
     end
 
     def write_mail_from
-      @socket.puts("MAIL from: <sender@kth.se>")
+      @socket.puts("MAIL from: #{opts["from"]}")
       read_socket(@socket)
     end
 
     def write_mail_to
-      @socket.puts("RCPT to: <fvas@kth.se>")
+      @socket.puts("RCPT to: #{opts["to"]}")
       read_socket(@socket)
     end
 
