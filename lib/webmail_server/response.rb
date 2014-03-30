@@ -84,8 +84,7 @@ module WebMailServer
         create_index_body
       elsif @request.request_uri == "/send_mail" && @request.method == "POST"
         log = SMTPWorker.new(@request.data).send_email
-        puts log
-        create_sent_mail_body
+        create_sent_mail_body(log)
       else
         create_default_body
       end
@@ -97,9 +96,9 @@ module WebMailServer
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
 
-    def create_sent_mail_body
+    def create_sent_mail_body(log)
       filepath = "#{WebMailServer::ROOT_DIR}/mail_sent.html"
-      self.body = HTTPBody.new(filepath)
+      self.body = HTTPBody.new(filepath).add_info!(log)
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
 
@@ -129,10 +128,10 @@ module WebMailServer
           self.header_field[:'Content-Type'] = "image/png"
           file.close
         else
-          self.body = HTTPBody.new.error! "Wrong file!"
+          self.body = HTTPBody.new(DEFAULT_PAGE).error! "Wrong file!"
         end
       else
-        self.body = HTTPBody.new.error! "Could not find file!"
+        self.body = HTTPBody.new(DEFAULT_PAGE).error! "Could not find file!"
       end
     end
 
@@ -152,17 +151,17 @@ module WebMailServer
     private
 
     class HTTPBody
-      ERROR_P = "<p> </p>"
+      ERROR_DIV = "<p id='error'> </p>"
+      INFO_DIV = "<p id='info'> </p>"
       def initialize(filename=nil)
-        if filename.nil?
-          @document = File.read(DEFAULT_PAGE)
-        else
-          @document = File.read(filename)
-        end
+        @document = File.read(filename)
       end
 
+      def add_info!(info)
+        @document.gsub!(INFO_DIV, "<p id='info'> #{info.gsub!("\n","<br >")} </p>")
+      end
       def error!(error)
-        @document.gsub!(ERROR_P, "<p> #{error} </p>")
+        @document.gsub!(ERROR_DIV, "<p id='error'> #{error} </p>")
       end
 
       def to_s

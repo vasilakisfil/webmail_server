@@ -16,7 +16,7 @@ module WebMailServer
       @opts = opts
       fix_mails_for_smtp
       create_write_operations
-      @log = ""
+      @log = "Initializing connection..\n"
     end
 
     #add safety/validation by checking answer OK"
@@ -30,10 +30,9 @@ module WebMailServer
         write_mail_data
         write_quit
       rescue => exception
-        puts exception.inspect
-        puts @log
+        @log += exception.inspect + "\n"
       end
-      puts @log
+      return @log
     end
 
     private
@@ -56,40 +55,40 @@ module WebMailServer
 
     def open_socket
       @socket = TCPSocket.open(@opts["server"], @opts["port"])
-      @log += read_socket(@socket)
+      @log += read_socket(@socket) + "\n"
     end
 
     def write_helo
-      @log += @write_opts[:helo]
+      @log += @write_opts[:helo] + "\n"
       @socket.puts(@write_opts[:helo])
-      @log += read_socket(@socket)
+      @log += read_socket(@socket) + "\n"
     end
 
     def write_mail_from
-      @log += @write_opts[:from]
+      @log += @write_opts[:from] + "\n"
       @socket.puts(@write_opts[:from])
-      @log += read_socket(@socket)
+      @log += read_socket(@socket) + "\n"
     end
 
     def write_mail_to
-      @log += @write_opts[:to]
+      @log += @write_opts[:to] + "\n"
       @socket.puts(@write_opts[:to])
-      @log += read_socket(@socket)
+      @log += read_socket(@socket) + "\n"
     end
 
     def write_mail_data
-      @log += @write_opts[:data]
+      @log += @write_opts[:data] + "\n"
       @socket.puts(@write_opts[:data])
-      @log += read_socket(@socket)
-      @log += @write_opts[:body]
+      @log += read_socket(@socket) + "\n"
+      @log += @write_opts[:body] + "\n"
       @socket.puts(@write_opts[:body])
-      @log += read_socket(@socket)
+      @log += read_socket(@socket) + "\n"
     end
 
     def write_quit
-      @log += @write_opts[:quit]
+      @log += @write_opts[:quit] + "\n"
       @socket.puts("QUIT")
-      @log += read_socket(@socket)
+      @log += read_socket(@socket) + "\n"
     end
 
     def read_socket(socket)
