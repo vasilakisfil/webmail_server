@@ -6,35 +6,48 @@ module WebMailServer
     attr_accessor :opts
 
     def initialize(opts={})
-      opts["server"]       ||= WebMailServer::SMTP_SERVER
-      opts["HELO"]         ||= "client.smtp.ik2213.lab"
-      opts["from"]         ||= 'email@kth.se'
-      opts["to"]           ||= 'fvas@kth.se'
-      opts["subject"]      ||= "This is the subject"
-      opts["body"]           = opts["message"] || "Watch out in KTH !"
-      opts["port"]         ||= 25
+      opts["server"]        ||= WebMailServer::SMTP_SERVER
+      opts["HELO"]          ||= "client.smtp.ik2213.lab"
+      opts["from"]          ||= 'email@kth.se'
+      opts["to"]            ||= 'fvas@kth.se'
+      opts["subject"]       ||= "This is the subject"
+      opts["message"]       ||= "Watch out in KTH !"
+      opts["port"]          ||= 25
       @opts = opts
       fix_mails_for_smtp
+      create_write_operations
+      @log = ""
     end
 
     #add safety/validation by checking answer OK"
+    #add better error log to be shown in the response html
     def send_email
-      log = ""
       begin
-        log += open_socket
-        log += write_helo
-        log += write_mail_from
-        log += write_mail_to
-        #log += write_subject
-        log += write_mail_data
-        log += write_quit
-      rescue
-        puts log
+        open_socket
+        write_helo
+        write_mail_from
+        write_mail_to
+        write_mail_data
+        write_quit
+      rescue => exception
+        puts exception.inspect
+        puts @log
       end
-      puts log
+      puts @log
     end
 
     private
+
+    def create_write_operations
+      @write_opts = {}
+      @write_opts[:helo] = "HELO #{opts["HELO"]}"
+      @write_opts[:from] = "MAIL from: #{opts["from"]}"
+      @write_opts[:to] = "RCPT to: #{opts["to"]}"
+      @write_opts[:data] = "DATA\n"
+      @write_opts[:body] = "Subject: #{opts["subject"]}\n\n"
+      @write_opts[:body] += "#{opts["message"]}\r\n.\r\n"
+      @write_opts[:quit] = "QUIT"
+    end
 
     def fix_mails_for_smtp
       opts["from"] = "<#{opts["from"]}>"
@@ -43,38 +56,40 @@ module WebMailServer
 
     def open_socket
       @socket = TCPSocket.open(@opts["server"], @opts["port"])
-      read_socket(@socket)
+      @log += read_socket(@socket)
     end
 
     def write_helo
-      @socket.puts("HELO #{opts["HELO"]}")
-      read_socket(@socket)
+      @log += @write_opts[:helo]
+      @socket.puts(@write_opts[:helo])
+      @log += read_socket(@socket)
     end
 
     def write_mail_from
-      @socket.puts("MAIL from: #{opts["from"]}")
-      read_socket(@socket)
+      @log += @write_opts[:from]
+      @socket.puts(@write_opts[:from])
+      @log += read_socket(@socket)
     end
 
     def write_mail_to
-      @socket.puts("RCPT to: #{opts["to"]}")
-      read_socket(@socket)
-    end
-
-    def write_mail_subject
-
+      @log += @write_opts[:to]
+      @socket.puts(@write_opts[:to])
+      @log += read_socket(@socket)
     end
 
     def write_mail_data
-      @socket.puts("DATA\r\n")
-      input = read_socket(@socket)
-      @socket.puts("#{opts["body"]}\r\n.\r\n")
-      input += read_socket(@socket)
+      @log += @write_opts[:data]
+      @socket.puts(@write_opts[:data])
+      @log += read_socket(@socket)
+      @log += @write_opts[:body]
+      @socket.puts(@write_opts[:body])
+      @log += read_socket(@socket)
     end
 
     def write_quit
+      @log += @write_opts[:quit]
       @socket.puts("QUIT")
-      read_socket(@socket)
+      @log += read_socket(@socket)
     end
 
     def read_socket(socket)
