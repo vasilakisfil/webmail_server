@@ -128,7 +128,7 @@ module WebMailServer
           self.header_field[:'Content-Type'] = "image/png"
           file.close
         else
-          self.body = HTTPBody.new(DEFAULT_PAGE).error! "Wrong file!"
+          self.body = HTTPBody.new(DEFAULT_PAGE).error! "Wrong file extension!"
         end
       else
         self.body = HTTPBody.new(DEFAULT_PAGE).error! "Could not find file!"
