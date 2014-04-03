@@ -7,7 +7,5 @@ group :test do
 end
 gem 'parseconfig'
 gem 'rest-client'
-gem 'celluloid'
-gem 'celluloid-io'
 gem 'logger'
 gem 'yard'
