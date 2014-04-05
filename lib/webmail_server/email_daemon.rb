@@ -1,4 +1,5 @@
 require 'singleton'
+require 'securerandom'
 
 module WebMailServer
   class EmailDaemon
@@ -16,9 +17,12 @@ module WebMailServer
     end
 
     def add(options)
+      random_id = SecureRandom.urlsafe_base64
+      options["random_id"] = random_id
       @semaphore.synchronize {
         @emails_array << Email.new(options)
       }
+      return random_id
     end
 
     def watch_new_emails
@@ -67,7 +71,7 @@ module WebMailServer
 
         def to_html
           output = %{ <tr>
-                      <td><a href="#">RandomID</td>
+                      <td><a href="status?mail=#{options["random_id"]}">#{options["random_id"]}</td>
                       <td>#{options["from"]}</td>
                       <td>#{options["to"]}</td>
                       <td>#{options["subject"]}</td>
