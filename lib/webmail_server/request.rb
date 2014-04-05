@@ -120,8 +120,8 @@ module WebMailServer
 
     def parse_multipart(data)
       array = data.split("\n")
-      random_str = array[0]
-      random_indices = array.each_index.select{|i| array[i].include? random_str}
+      #fix that according to browser..
+      random_indices = array.each_index.select{|i| array[i].include? "------"}
       values = {}
       random_indices.each_index do |index|
         description = array[random_indices[index]+1]

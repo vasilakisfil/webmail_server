@@ -83,8 +83,9 @@ module WebMailServer
       if @request.request_uri == "/index" && @request.method == "GET"
         create_index_body
       elsif @request.request_uri == "/send_mail" && @request.method == "POST"
-        log = SMTPWorker.new(@request.data).send_email
-        create_sent_mail_body(log)
+        EmailDaemon.instance.add(@request.data)
+        #log = SMTPWorker.new(@request.data).send_email
+        create_sent_mail_body("Your can see your log from the status page")
       else
         create_default_body
       end
