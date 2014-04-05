@@ -68,11 +68,11 @@ module WebMailServer
         def to_html
           output = %{ <tr>
                       <td><a href="#">RandomID</td>
-                      <td>vasilakisfil@gmail.com</td>
-                      <td>fvas@kth.se</td>
-                      <td>This is a nice shubject</td>
-                      <td>Content goes hereContent goes hereContent goes hereContent goes hereContent goes here</td>
-                      <td>60</td>
+                      <td>#{options["from"]}</td>
+                      <td>#{options["to"]}</td>
+                      <td>#{options["subject"]}</td>
+                      <td>#{options["message"]}</td>
+                      <td>#{options["delay"]}</td>
                     </tr>
           }
         end

@@ -101,7 +101,7 @@ module WebMailServer
 
     def create_status_body
       filepath = "#{WebMailServer::ROOT_DIR}/status.html"
-      self.body = HTTPBody.new(filepath)
+      self.body = HTTPBody.new(filepath).add_statuses!(EmailDaemon.instance.to_html)
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
 
@@ -161,10 +161,17 @@ module WebMailServer
     private
 
     class HTTPBody
+      # should fix these by providing abstract method
       ERROR_DIV = "<p id='error'> </p>"
       INFO_DIV = "<p id='info'> </p>"
+      STATUSES_DIV = "<tbody> </tbody>"
+
       def initialize(filename=nil)
         @document = File.read(filename)
+      end
+
+      def add_statuses!(statuses)
+        @document.gsub!(STATUSES_DIV, "<tbody> #{statuses} </tbody>")
       end
 
       def add_info!(info)
