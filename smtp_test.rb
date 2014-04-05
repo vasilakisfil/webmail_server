@@ -4,15 +4,17 @@ require 'thread'
 semaphore = Mutex.new
 
 module WebMailServer
-  class EmailWorker
+  class Email
     attr_reader :delay, :delivery, :options
     def initialize(options)
+      puts options
       @options = options
-      @delay = options[:delay]
-      @delivery = Time.now.to_i + @delay
+      @delay = options["delay"].to_i
+      @delivery = Time.now.to_i + @delay.to_i
     end
 
     def dispatch
+      puts "Dispatching email"
       SMTPWorker.new(@options).send_email
     end
   end

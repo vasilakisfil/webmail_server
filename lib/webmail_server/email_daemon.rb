@@ -33,12 +33,21 @@ module WebMailServer
           puts "---------------"
           @emails_array.each do |e|
             if Time.now.to_i >= e.delivery
+              e.dispatch
               puts "Deleting element"; p e
               @emails_array.delete(e)
             end
           end
         }
       end
+    end
+
+    def to_html
+      output = ""
+      @emails_array.each do |v|
+        output += v.to_html
+      end
+      return output
     end
 
     private
@@ -52,7 +61,20 @@ module WebMailServer
         end
 
         def dispatch
+          puts "Dispatching email"
           SMTPWorker.new(@options).send_email
+        end
+
+        def to_html
+          output = %{ <tr>
+                      <td><a href="#">RandomID</td>
+                      <td>vasilakisfil@gmail.com</td>
+                      <td>fvas@kth.se</td>
+                      <td>This is a nice shubject</td>
+                      <td>Content goes hereContent goes hereContent goes hereContent goes hereContent goes here</td>
+                      <td>60</td>
+                    </tr>
+          }
         end
       end
   end

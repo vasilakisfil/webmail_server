@@ -82,6 +82,8 @@ module WebMailServer
     def create_body
       if @request.request_uri == "/index" && @request.method == "GET"
         create_index_body
+      elsif @request.request_uri == "/status" && @request.method == "GET"
+        create_status_body
       elsif @request.request_uri == "/send_mail" && @request.method == "POST"
         EmailDaemon.instance.add(@request.data)
         #log = SMTPWorker.new(@request.data).send_email
@@ -93,6 +95,12 @@ module WebMailServer
 
     def create_index_body
       filepath = "#{WebMailServer::ROOT_DIR}/index.html"
+      self.body = HTTPBody.new(filepath)
+      self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
+    end
+
+    def create_status_body
+      filepath = "#{WebMailServer::ROOT_DIR}/status.html"
       self.body = HTTPBody.new(filepath)
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
@@ -144,6 +152,7 @@ module WebMailServer
       return @header_fields
     end
 
+    # FIX THAT: get status line dynamically
     # Returns a string version of the HTTP response
     def to_s
       response = "#{@status_line}\n#{@header_fields}\n#{@body}"
@@ -159,7 +168,7 @@ module WebMailServer
       end
 
       def add_info!(info)
-        @document.gsub!(INFO_DIV, "<p id='info'> #{info.gsub!("\n","<br >")} </p>")
+        @document.gsub!(INFO_DIV, "<p id='info'> #{info.gsub("\n","<br >")} </p>")
       end
       def error!(error)
         @document.gsub!(ERROR_DIV, "<p id='error'> #{error} </p>")
