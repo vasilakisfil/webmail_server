@@ -121,7 +121,7 @@ module WebMailServer
           else
             opts["subject"] = "Mail to #{options["to"]} successfully sent"
           end
-          opts["message"] = log
+          opts["message"] = log.gsub("\r\n.\r\n","\r\n{dot}\r\n")
           log, error = SMTPWorker.new(opts).send_email
           return [log, error]
         end
