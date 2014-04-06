@@ -1,4 +1,5 @@
 require 'singleton'
+require 'uri'
 require 'securerandom'
 
 module WebMailServer
@@ -46,11 +47,21 @@ module WebMailServer
       end
     end
 
-    def to_html
+    def to_html(id=nil)
       output = ""
-      @emails_array.each do |v|
-        output += v.to_html
+      if id
+        @emails_array.each do |v|
+          if v.options["random_id"] == id
+            output += v.to_html
+            break
+          end
+        end
+      else
+        @emails_array.each do |v|
+          output += v.to_html
+        end
       end
+
       return output
     end
 

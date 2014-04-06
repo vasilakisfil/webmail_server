@@ -78,12 +78,23 @@ module WebMailServer
       @status_line = "#{@http_version} #{@status_code} #{STATUS_CODE[@status_code.to_i]}"
     end
 
+    def parse_status_query(uri)
+        email_id = nil
+        if query = URI.parse(uri).query
+          email_id = query.split("=")[1]
+        end
+    end
 
     def create_body
       if @request.request_uri == "/index" && @request.method == "GET"
         create_index_body
-      elsif @request.request_uri == "/status" && @request.method == "GET"
-        create_status_body
+      elsif @request.request_uri.include?("/status") && @request.method == "GET"
+        email_id = parse_status_query(@request.request_uri)
+        if email_id.nil?
+          create_statuses_body
+        else
+          create_status_body(email_id)
+        end
       elsif @request.request_uri == "/send_mail" && @request.method == "POST"
         id = EmailDaemon.instance.add(@request.data)
         #log = SMTPWorker.new(@request.data).send_email
@@ -99,7 +110,13 @@ module WebMailServer
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
 
-    def create_status_body
+    def create_status_body(email_id)
+      filepath = "#{WebMailServer::ROOT_DIR}/status.html"
+      self.body = HTTPBody.new(filepath).add_statuses!(EmailDaemon.instance.to_html(email_id))
+      self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
+    end
+
+    def create_statuses_body
       filepath = "#{WebMailServer::ROOT_DIR}/status.html"
       self.body = HTTPBody.new(filepath).add_statuses!(EmailDaemon.instance.to_html)
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
