@@ -36,7 +36,11 @@ module WebMailServer
           @emails_array.each do |e|
             if Time.now.to_i >= e.delivery && !e.sent
               e.dispatch
-              puts "Sent email"; p e
+              log, error = e.confirmation_email(log(e.options["random_id"]))
+              puts "============= Confirmation Email =================="
+              puts log
+              puts error
+              puts "============= Confirmation Email =================="
             end
           end
         }
@@ -47,8 +51,22 @@ module WebMailServer
       output = "Email id not found"
       @emails_array.each do |v|
         if v.options["random_id"] == id
-          output = v.log
-          break
+          if v.sent
+            output = ""
+            if v.error
+              output += "Mail was not sent!\n Error:  "
+              output += v.error + "\n"
+              output += "Detailed log\n \n"
+            else
+              output += "Mail was successfully sent!\n"
+              output += "Detailed log\n \n"
+            end
+            output += v.log
+            break
+          else
+            output = "Email not sent yet\n"
+            output += v.log
+          end
         end
       end
       return output
@@ -76,7 +94,7 @@ module WebMailServer
     private
       class Email
         attr_reader :delay, :delivery, :options, :registered, :delivery, :sent,
-          :log
+          :log, :error
         def initialize(options)
           puts options
           @options = options
@@ -84,21 +102,41 @@ module WebMailServer
           @registered = Time.now.to_i
           @delivery = @registered + @delay.to_i
           @sent = false
-          @log = "Log will be available after <br> #{Time.at(@delivery)}"
+          @log = "Log will be available after \n #{Time.at(@delivery)}"
+          @error = nil
         end
 
         def dispatch
           puts "Dispatching email"
-          @log = SMTPWorker.new(@options.dup).send_email
+          @log, @error = SMTPWorker.new(@options.dup).send_email
           @sent = true
         end
 
-        def to_html
-          if @delivery < Time.now.to_i
-            time_to_send = "sent"
+        def confirmation_email(log)
+          opts = options.dup
+          opts["to"] = opts["from"]
+          opts["from"] = "noreply@example.com"
+          if @error
+            opts["subject"] = "Mail to #{options["to"]} failed"
           else
-            time_to_send = Time.at(@delivery)
+            opts["subject"] = "Mail to #{options["to"]} successfully sent"
           end
+          opts["message"] = log
+          log, error = SMTPWorker.new(opts).send_email
+          return [log, error]
+        end
+
+        def to_html
+          if @error
+            time_to_send = "Failed"
+          else
+            if @delivery < Time.now.to_i
+              time_to_send = "sent"
+            else
+              time_to_send = Time.at(@delivery)
+            end
+          end
+
           output = %{ <tr>
                       <td><a href="status?mail=#{options["random_id"]}">#{options["random_id"]}</td>
                       <td>#{options["from"]}</td>

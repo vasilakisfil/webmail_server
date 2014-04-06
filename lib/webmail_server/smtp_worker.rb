@@ -22,18 +22,25 @@ module WebMailServer
     #add safety/validation by checking answer OK"
     #add better error log to be shown in the response html
     def send_email
+      error = nil
       begin
-        open_socket
-        write_helo
-        write_mail_from
-        write_mail_to
-        write_mail_data
-        write_quit
+        loop do
+          open_socket
+          write_helo
+          err = write_mail_from
+          (error = err; break) if !err.include? "Ok"
+          err = write_mail_to
+          (error = err; break) if !err.include? "Ok"
+          err = write_mail_data
+          (error = err; break) if !err.include? "Ok"
+          write_quit
+          break
+        end
       rescue => exception
         @log += exception.inspect + "\n"
       end
       puts @log
-      return @log
+      return @log, error
     end
 
     private
@@ -56,25 +63,33 @@ module WebMailServer
 
     def open_socket
       @socket = TCPSocket.open(@opts["server"], @opts["port"])
-      @log += read_socket(@socket) + "\n"
+      log = read_socket(@socket) + "\n"
+      @log += log
+      return log
     end
 
     def write_helo
       @log += @write_opts[:helo] + "\n"
       @socket.puts(@write_opts[:helo])
-      @log += read_socket(@socket) + "\n"
+      log = read_socket(@socket) + "\n"
+      @log += log
+      return log
     end
 
     def write_mail_from
       @log += @write_opts[:from] + "\n"
       @socket.puts(@write_opts[:from])
-      @log += read_socket(@socket) + "\n"
+      log = read_socket(@socket) + "\n"
+      @log += log
+      return log
     end
 
     def write_mail_to
       @log += @write_opts[:to] + "\n"
       @socket.puts(@write_opts[:to])
-      @log += read_socket(@socket) + "\n"
+      log = read_socket(@socket) + "\n"
+      @log += log
+      return log
     end
 
     def write_mail_data
@@ -83,13 +98,17 @@ module WebMailServer
       @log += read_socket(@socket) + "\n"
       @log += @write_opts[:body] + "\n"
       @socket.puts(@write_opts[:body])
-      @log += read_socket(@socket) + "\n"
+      log = read_socket(@socket) + "\n"
+      @log += log
+      return log
     end
 
     def write_quit
       @log += @write_opts[:quit] + "\n"
       @socket.puts("QUIT")
-      @log += read_socket(@socket) + "\n"
+      log = read_socket(@socket) + "\n"
+      @log += log
+      return log
     end
 
     def read_socket(socket)
