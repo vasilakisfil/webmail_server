@@ -199,8 +199,13 @@ module WebMailServer
       end
 
       def add_status!(status, log)
+        log = log.gsub("\n\n","\n")
+        log = log.gsub("\r\n","\n")
+        log = log.gsub("<", "&lt;")
+        log = log.gsub(">", "&gt;")
+        log = log.gsub("\n", "<br>")
         @document.gsub!(STATUSES_DIV, "<tbody> #{status} </tbody>")
-        @document.gsub!(INFO_DIV, "<p id='info'> #{log.gsub("\n","<br >")} </p>")
+        @document.gsub!(INFO_DIV, "<p id='info'> #{log} </p>")
         return @document
       end
 

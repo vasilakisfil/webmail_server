@@ -32,6 +32,7 @@ module WebMailServer
       rescue => exception
         @log += exception.inspect + "\n"
       end
+      puts @log
       return @log
     end
 
