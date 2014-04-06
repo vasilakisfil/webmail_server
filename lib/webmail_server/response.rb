@@ -97,8 +97,8 @@ module WebMailServer
         end
       elsif @request.request_uri == "/send_mail" && @request.method == "POST"
         id = EmailDaemon.instance.add(@request.data)
-        #log = SMTPWorker.new(@request.data).send_email
-        create_sent_mail_body("Your can see your log here #{id}")
+        log = %{Your can see your log <a href="/status?mail=#{id}">here</a>}
+        create_sent_mail_body(log)
       else
         create_default_body
       end
@@ -112,7 +112,10 @@ module WebMailServer
 
     def create_status_body(email_id)
       filepath = "#{WebMailServer::ROOT_DIR}/status.html"
-      self.body = HTTPBody.new(filepath).add_statuses!(EmailDaemon.instance.to_html(email_id))
+      self.body = HTTPBody.new(filepath).add_status!(
+        EmailDaemon.instance.to_html(email_id),
+        EmailDaemon.instance.log(email_id)
+      )
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
 
@@ -123,7 +126,7 @@ module WebMailServer
     end
 
     def create_sent_mail_body(log)
-      filepath = "#{WebMailServer::ROOT_DIR}/mail_sent.html"
+      filepath = "#{WebMailServer::ROOT_DIR}/send_mail.html"
       self.body = HTTPBody.new(filepath).add_info!(log)
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
@@ -189,6 +192,16 @@ module WebMailServer
 
       def add_statuses!(statuses)
         @document.gsub!(STATUSES_DIV, "<tbody> #{statuses} </tbody>")
+        @document.gsub!(
+          INFO_DIV,
+          "<p id='info'> Click on an email id to see the log information. </p>"
+        )
+      end
+
+      def add_status!(status, log)
+        @document.gsub!(STATUSES_DIV, "<tbody> #{status} </tbody>")
+        @document.gsub!(INFO_DIV, "<p id='info'> #{log.gsub("\n","<br >")} </p>")
+        return @document
       end
 
       def add_info!(info)

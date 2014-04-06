@@ -32,27 +32,35 @@ module WebMailServer
         @semaphore.synchronize {
           next if @emails_array.empty?
           @emails_array.sort_by! { |obj| obj.delivery }
+
           @emails_array.each do |e|
-            puts e.options
-          end
-          puts "---------------"
-          @emails_array.each do |e|
-            if Time.now.to_i >= e.delivery
+            if Time.now.to_i >= e.delivery && !e.sent
               e.dispatch
-              puts "Deleting element"; p e
-              @emails_array.delete(e)
+              puts "Sent email"; p e
             end
           end
         }
       end
     end
 
+    def log(id)
+      output = "Email id not found"
+      @emails_array.each do |v|
+        if v.options["random_id"] == id
+          output = v.log
+          break
+        end
+      end
+      return output
+    end
+
     def to_html(id=nil)
       output = ""
       if id
+        output = "Email id not found"
         @emails_array.each do |v|
           if v.options["random_id"] == id
-            output += v.to_html
+            output = v.to_html
             break
           end
         end
@@ -67,20 +75,30 @@ module WebMailServer
 
     private
       class Email
-        attr_reader :delay, :delivery, :options
+        attr_reader :delay, :delivery, :options, :registered, :delivery, :sent,
+          :log
         def initialize(options)
           puts options
           @options = options
           @delay = options["delay"].to_i
-          @delivery = Time.now.to_i + @delay.to_i
+          @registered = Time.now.to_i
+          @delivery = @registered + @delay.to_i
+          @sent = false
+          @log = "Log will be available after <br> #{Time.at(@delivery)}"
         end
 
         def dispatch
           puts "Dispatching email"
-          SMTPWorker.new(@options).send_email
+          @log = SMTPWorker.new(@options.dup).send_email
+          @sent = true
         end
 
         def to_html
+          if @delivery < Time.now.to_i
+            time_to_send = "sent"
+          else
+            time_to_send = Time.at(@delivery)
+          end
           output = %{ <tr>
                       <td><a href="status?mail=#{options["random_id"]}">#{options["random_id"]}</td>
                       <td>#{options["from"]}</td>
@@ -88,6 +106,7 @@ module WebMailServer
                       <td>#{options["subject"]}</td>
                       <td>#{options["message"]}</td>
                       <td>#{options["delay"]}</td>
+                      <td>#{time_to_send}</td>
                     </tr>
           }
         end
