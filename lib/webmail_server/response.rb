@@ -78,12 +78,26 @@ module WebMailServer
       @status_line = "#{@http_version} #{@status_code} #{STATUS_CODE[@status_code.to_i]}"
     end
 
+    def parse_status_query(uri)
+        email_id = nil
+        if query = URI.parse(uri).query
+          email_id = query.split("=")[1]
+        end
+    end
 
     def create_body
       if @request.request_uri == "/index" && @request.method == "GET"
         create_index_body
+      elsif @request.request_uri.include?("/status") && @request.method == "GET"
+        email_id = parse_status_query(@request.request_uri)
+        if email_id.nil?
+          create_statuses_body
+        else
+          create_status_body(email_id)
+        end
       elsif @request.request_uri == "/send_mail" && @request.method == "POST"
-        log = SMTPWorker.new(@request.data).send_email
+        id = EmailDaemon.instance.add(@request.data)
+        log = %{Your can see your log <a href="/status?mail=#{id}">here</a>}
         create_sent_mail_body(log)
       else
         create_default_body
@@ -96,8 +110,23 @@ module WebMailServer
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
 
+    def create_status_body(email_id)
+      filepath = "#{WebMailServer::ROOT_DIR}/status.html"
+      self.body = HTTPBody.new(filepath).add_status!(
+        EmailDaemon.instance.to_html(email_id),
+        EmailDaemon.instance.log(email_id)
+      )
+      self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
+    end
+
+    def create_statuses_body
+      filepath = "#{WebMailServer::ROOT_DIR}/status.html"
+      self.body = HTTPBody.new(filepath).add_statuses!(EmailDaemon.instance.to_html)
+      self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
+    end
+
     def create_sent_mail_body(log)
-      filepath = "#{WebMailServer::ROOT_DIR}/mail_sent.html"
+      filepath = "#{WebMailServer::ROOT_DIR}/send_mail.html"
       self.body = HTTPBody.new(filepath).add_info!(log)
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
@@ -143,6 +172,7 @@ module WebMailServer
       return @header_fields
     end
 
+    # FIX THAT: get status line dynamically
     # Returns a string version of the HTTP response
     def to_s
       response = "#{@status_line}\n#{@header_fields}\n#{@body}"
@@ -151,14 +181,31 @@ module WebMailServer
     private
 
     class HTTPBody
+      # should fix these by providing abstract method
       ERROR_DIV = "<p id='error'> </p>"
       INFO_DIV = "<p id='info'> </p>"
+      STATUSES_DIV = "<tbody> </tbody>"
+
       def initialize(filename=nil)
         @document = File.read(filename)
       end
 
+      def add_statuses!(statuses)
+        @document.gsub!(STATUSES_DIV, "<tbody> #{statuses} </tbody>")
+        @document.gsub!(
+          INFO_DIV,
+          "<p id='info'> Click on an email id to see the log information. </p>"
+        )
+      end
+
+      def add_status!(status, log)
+        @document.gsub!(STATUSES_DIV, "<tbody> #{status} </tbody>")
+        @document.gsub!(INFO_DIV, "<p id='info'> #{log.gsub("\n","<br >")} </p>")
+        return @document
+      end
+
       def add_info!(info)
-        @document.gsub!(INFO_DIV, "<p id='info'> #{info.gsub!("\n","<br >")} </p>")
+        @document.gsub!(INFO_DIV, "<p id='info'> #{info.gsub("\n","<br >")} </p>")
       end
       def error!(error)
         @document.gsub!(ERROR_DIV, "<p id='error'> #{error} </p>")

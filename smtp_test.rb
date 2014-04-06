@@ -4,15 +4,17 @@ require 'thread'
 semaphore = Mutex.new
 
 module WebMailServer
-  class EmailWorker
-    attr_reader :delay, :registered, :options
+  class Email
+    attr_reader :delay, :delivery, :options
     def initialize(options)
+      puts options
       @options = options
-      @delay = options[:delay]
-      @registered = Time.now.to_i
+      @delay = options["delay"].to_i
+      @delivery = Time.now.to_i + @delay.to_i
     end
 
     def dispatch
+      puts "Dispatching email"
       SMTPWorker.new(@options).send_email
     end
   end
@@ -23,14 +25,14 @@ Thread.new do
   while true do
     sleep(1)
     semaphore.synchronize {
-      emails_array.sort_by! { |obj| obj.options[:delay] }
+      emails_array.sort_by! { |obj| obj.delivery }
       emails_array.each do |e|
         puts e.options
       end
       puts "---------------"
       emails_array.each do |e|
-        if Time.now.to_i - e.registered >= e.options[:delay]
-          puts "Dispatching Email and deleting element"; p e
+        if Time.now.to_i >= e.delivery
+          puts "Deleting element"; p e
           emails_array.delete(e)
         end
       end

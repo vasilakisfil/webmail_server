@@ -1,15 +1,16 @@
 require 'socket'
 require 'parseconfig'
 require 'logger'
+require 'thread'
 
 require_relative 'webmail_server/configuration'
 require_relative 'webmail_server/answer_worker'
 require_relative 'webmail_server/request'
 require_relative 'webmail_server/response'
+require_relative 'webmail_server/email_daemon'
 require_relative 'webmail_server/smtp_worker'
 
 module WebMailServer
-
   # Starts and initiates the HTTP server
   class HTTPServer
     attr_reader :config_path, :server_root, :port
@@ -30,6 +31,10 @@ module WebMailServer
       @tcp_server = TCPServer.new("0.0.0.0", @port)
       @logger.debug { "Listening to 0.0.0.0 port #{@port}
                       pointing #{ROOT_DIR}" }
+
+      # initialize singleton
+      EmailDaemon.instance
+
       answer_worker = AnswerWorker.new
       client = nil
       loop do
