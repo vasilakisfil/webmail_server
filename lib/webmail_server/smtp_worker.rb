@@ -6,7 +6,7 @@ module WebMailServer
     attr_accessor :opts
 
     def initialize(opts={})
-      opts["server"]        ||= WebMailServer::SMTP_SERVER
+      opts["smtp_server"]        ||= WebMailServer::SMTP_SERVER
       opts["HELO"]          ||= "client.smtp.ik2213.lab"
       opts["from"]          ||= 'email@kth.se'
       opts["to"]            ||= 'fvas@kth.se'
@@ -37,6 +37,7 @@ module WebMailServer
           break
         end
       rescue => exception
+        error = exception.inspect + "\n"
         @log += exception.inspect + "\n"
       end
       puts @log
@@ -62,7 +63,7 @@ module WebMailServer
     end
 
     def open_socket
-      @socket = TCPSocket.open(@opts["server"], @opts["port"])
+      @socket = TCPSocket.open(@opts["smtp_server"], @opts["port"])
       log = read_socket(@socket) + "\n"
       @log += log
       return log
