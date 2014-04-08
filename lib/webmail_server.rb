@@ -39,7 +39,7 @@ module WebMailServer
       client = nil
       loop do
         client = @tcp_server.accept
-        @logger.debug { "Server accepted" }
+        @logger.debug { "Server accepted new request" }
         answer_worker.start(client)
       end
       stop

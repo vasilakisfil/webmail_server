@@ -8,6 +8,8 @@ module WebMailServer
     #
     # @param request [String] The request string
     def initialize(request)
+      @logger = ::Logger.new(STDOUT)
+      @logger.level = Logger::DEBUG
       @full_request = request
       @valid = false
       method, request_uri, http_version = request.lines.first.split " "
@@ -16,8 +18,10 @@ module WebMailServer
         @method, @request_uri, @http_version, @valid = method, request_uri,
                                                       http_version, true
       end
+      @logger.debug { "Request line  #{@method} #{@request_uri} #{@http_version}" }
 
       @header_fields = parse_header_fields(header_fields)
+      #logger.debug { "Request headers  #{@method} #{@request_uri} #{@http_version}" }
     end
 
     def parse_data(data)
@@ -119,6 +123,8 @@ module WebMailServer
     end
 
     def parse_multipart(data)
+      @logger.debug { "Parsing Request multipart data" }
+      @logger.debug { data }
       array = data.split("\n")
       #fix that according to browser..
       random_indices = array.each_index.select{|i| array[i].include? "------"}
@@ -131,11 +137,18 @@ module WebMailServer
         values[name] = array[random_indices[index]+3...random_indices[index+1]]
         break if index == random_indices.length-2
       end
+      puts values
       #strip \r from values
       hash_values = {}
       values.each do |key, value|
-        hash_values[key.gsub("\r","")] = value.first.gsub("\r","")
+        hash_values[key.gsub("\r","")] = value
       end
+      hash_values["message"] = [hash_values["message"].join("\n")]
+      hash_values.each do |key, value|
+        hash_values[key] = value.first.gsub("\r","")
+      end
+      @logger.debug { "Data parsed:" }
+      @logger.debug { hash_values }
       return hash_values
     end
 

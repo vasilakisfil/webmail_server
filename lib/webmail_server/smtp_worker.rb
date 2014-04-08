@@ -6,6 +6,8 @@ module WebMailServer
     attr_accessor :opts
 
     def initialize(opts={})
+      @logger = ::Logger.new(STDOUT)
+      @logger.level = Logger::DEBUG
       opts["smtp_server"]        ||= WebMailServer::SMTP_SERVER
       opts["HELO"]          ||= "client.smtp.ik2213.lab"
       opts["from"]          ||= 'email@kth.se'
@@ -14,6 +16,7 @@ module WebMailServer
       opts["message"]       ||= "Watch out in KTH !"
       opts["port"]          ||= 25
       @opts = opts
+
       fix_mails_for_smtp
       create_write_operations
       @log = "Initializing connection..\n"
@@ -22,6 +25,9 @@ module WebMailServer
     #add safety/validation by checking answer OK"
     #add better error log to be shown in the response html
     def send_email
+      @logger.debug { "=================== Sending email ===================" }
+      @logger.debug { @opts }
+      @logger.debug { "=================== Sending email ===================" }
       error = nil
       begin
         loop do

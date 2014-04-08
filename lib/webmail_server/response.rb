@@ -29,6 +29,8 @@ module WebMailServer
     # Initializes the most basic fields of the HTTP response
     # (Any field can be re-configured through header_field method)
     def initialize(request)
+      @logger = ::Logger.new(STDOUT)
+      @logger.level = Logger::DEBUG
       @request = request
       create_headers
       create_body
@@ -105,12 +107,14 @@ module WebMailServer
     end
 
     def create_index_body
+      @logger.debug { "Creating an index body" }
       filepath = "#{WebMailServer::ROOT_DIR}/index.html"
       self.body = HTTPBody.new(filepath)
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
 
     def create_status_body(email_id)
+      @logger.debug { "Creating a status body with email_id: #{email_id.inspect}" }
       filepath = "#{WebMailServer::ROOT_DIR}/status.html"
       self.body = HTTPBody.new(filepath).add_status!(
         EmailDaemon.instance.to_html(email_id),
@@ -120,18 +124,21 @@ module WebMailServer
     end
 
     def create_statuses_body
+      @logger.debug { "Creating a statuses body" }
       filepath = "#{WebMailServer::ROOT_DIR}/status.html"
       self.body = HTTPBody.new(filepath).add_statuses!(EmailDaemon.instance.to_html)
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
 
     def create_sent_mail_body(log)
+      @logger.debug { "Creating a sent mail body" }
       filepath = "#{WebMailServer::ROOT_DIR}/send_mail.html"
       self.body = HTTPBody.new(filepath).add_info!(log)
       self.header_field[:'Content-Type'] = "text/html; charset=utf-8"
     end
 
     def create_default_body
+      @logger.debug { "Creating a default body" }
       filepath = "#{WebMailServer::ROOT_DIR}#{@request.request_uri}"
       if File.exists? filepath
         case @request.request_uri
@@ -158,9 +165,11 @@ module WebMailServer
           file.close
         else
           self.body = HTTPBody.new(DEFAULT_PAGE).error! "Wrong file extension!"
+          @header_field[:Status] = @status_code =  "404"
         end
       else
         self.body = HTTPBody.new(DEFAULT_PAGE).error! "Could not find file!"
+        @header_field[:Status] = @status_code =  "404"
       end
     end
 

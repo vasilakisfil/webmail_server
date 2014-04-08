@@ -9,6 +9,8 @@ module WebMailServer
     attr_reader :emails_array
 
     def initialize
+      @logger = ::Logger.new(STDOUT)
+      @logger.level = Logger::DEBUG
       @emails_array = []
       @semaphore = Mutex.new
 
@@ -37,10 +39,10 @@ module WebMailServer
             if Time.now.to_i >= e.delivery && !e.sent
               e.dispatch
               log, error = e.confirmation_email(log(e.options["random_id"]))
-              puts "============= Confirmation Email =================="
-              puts log
-              puts error
-              puts "============= Confirmation Email =================="
+
+              @logger.debug { "============= Confirmation Email Log ==================" }
+              @logger.debug { log }
+              @logger.debug { "============= Confirmation Email Log ==================" }
             end
           end
         }

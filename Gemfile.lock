@@ -9,6 +9,7 @@ GEM
     diff-lcs (1.2.5)
     logger (1.2.8)
     mime-types (2.2)
+    net-dns (0.8.0)
     parseconfig (1.0.4)
     rake (10.2.2)
     rest-client (1.6.7)
@@ -29,6 +30,7 @@ PLATFORMS
 DEPENDENCIES
   agrimi!
   logger
+  net-dns
   parseconfig
   rake
   rest-client

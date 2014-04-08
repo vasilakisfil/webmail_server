@@ -10,7 +10,7 @@ module WebMailServer
     # Initializes the AnswerWorker
     def initialize
       @logger = ::Logger.new(STDOUT)
-      @logger.level = ::Logger::INFO
+      @logger.level = Logger::DEBUG
     end
 
     # Starts the AnswerWorker.
@@ -19,13 +19,11 @@ module WebMailServer
     # @param server_root [string] The directory that the server points to
     def start(client)
       request = read_request(client)
-      puts; puts "Request from browser"
-      #puts request.to_s
+      @logger.debug { "Request analyzed, now reading data if any" }
 
-      puts request.data
       response = Response.new(request)
-      #puts; puts "Response from server"
-      #puts response.header_fields
+      @logger.debug { "Response created and is sent to client" }
+
       client.puts response.to_s
       client.close
     end
