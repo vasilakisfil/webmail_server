@@ -52,8 +52,12 @@ module WebMailServer
       @write_opts[:from] = "MAIL from: #{opts["from"]}"
       @write_opts[:to] = "RCPT to: #{opts["to"]}"
       @write_opts[:data] = "DATA\n"
+
+      #sanitize to rfc2047
       @write_opts[:body] = "Subject: #{opts["subject"]}\n\n"
+      #add mime headers and sanitize to quoted printable
       @write_opts[:body] += "#{opts["message"]}\r\n.\r\n"
+
       @write_opts[:quit] = "QUIT"
     end
 
