@@ -17,9 +17,17 @@ module WebMailServer
       opts["port"]          ||= 25
       @opts = opts
 
+      parse_swedish
       fix_mails_for_smtp
       create_write_operations
       @log = "Initializing connection..\n"
+    end
+
+
+    def parse_swedish
+      @opts["message"] = @opts["message"].force_encoding(Encoding::UTF_8)
+      @opts["message"] = @opts["message"].to_s.gsub("Å","=C3=85").gsub("Ä","=C3=84").gsub("Ö","=C3=96")
+      @opts["message"] = @opts["message"].to_s.gsub("å","=C3=A5").gsub("ä","=C3=A4").gsub("ö","=C3=B6")
     end
 
     #add safety/validation by checking answer OK"
@@ -54,18 +62,22 @@ module WebMailServer
 
     def create_write_operations
       @write_opts = {}
-      @write_opts[:helo] = "HELO #{opts["HELO"]}"
-      @write_opts[:from] = "MAIL from: #{opts["from"]}"
-      @write_opts[:to] = "RCPT to: #{opts["to"]}"
+      @write_opts[:helo] = "HELO #{@opts["HELO"]}"
+      @write_opts[:from] = "MAIL from: #{@opts["from"]}"
+      @write_opts[:to] = "RCPT to: #{@opts["to"]}"
       @write_opts[:data] = "DATA\n"
-      @write_opts[:body] = "Subject: #{opts["subject"]}\n\n"
-      @write_opts[:body] += "#{opts["message"]}\r\n.\r\n"
+      @write_opts[:body] = "MIME-Version: 1.0\r\n"
+      @write_opts[:body] += "Content-Type: text/HTML; charset=UTF-8\r\n"
+      @write_opts[:body] += "Content-Transfer-Encoding: quoted-printable\n\r\n"
+      @write_opts[:body] += "\r\n"
+      @write_opts[:body] += "Subject: #{@opts["subject"]}\n\n"
+      @write_opts[:body] += "#{@opts["message"]}\r\n.\r\n"
       @write_opts[:quit] = "QUIT"
     end
 
     def fix_mails_for_smtp
-      opts["from"] = "<#{opts["from"]}>"
-      opts["to"] = "<#{opts["to"]}>"
+      @opts["from"] = "<#{@opts["from"]}>"
+      @opts["to"] = "<#{@opts["to"]}>"
     end
 
     def open_socket
