@@ -1,23 +1,28 @@
 module Qprintable
+
   def self.replace_chars_ascii(line, length=70, encoding = 'ascii', inc_C3 = true)
     if !line.ascii_only? || line.include?("=") 
       replaced = ""
-      puts "line before #{line}"
+      #puts "line before #{line}"
       flag = false
-      if line[-2..-1] == "=\n"
-        till = line.length-3
+      if line[-3..-1] == "=\r\n"
+        till = line.length-4
         flag = true
-        puts "yes i striped it"
+        #puts "yes i striped it"
       else
         till = line.length
       end
-      puts "line after #{line[0..till]}"
+      #puts "line after #{line[0..till]}"
       line[0..till].each_char do |char|
         byte = char.ord
-        if byte.between?(32, 60) || byte.between?(62,126)
+        if byte.between?(33, 60) || byte.between?(62,126)
           conv = char
         elsif byte == 10
-          conv = "\n"
+          conv = "\r\n"
+        elsif byte == 9 || byte == 32
+          conv = char
+        elsif byte == 61
+          conv = "=3D"
         else
           if encoding == 'ascii'
             if inc_C3 == true
@@ -29,20 +34,20 @@ module Qprintable
             conv = "=#{byte.to_s(16).upcase}"
           end
         end
-        puts "#{char} converted to #{conv}"
+        #puts "#{char} converted to #{conv}"
         if replaced.lines[-1] != nil && replaced.lines[-1].length+conv.length >= length 
-          conv = "=\n" + conv
-          puts "spliting conv because went over #{replaced + conv}"
+          conv = "=\r\n" + conv
+          #puts "spliting conv because went over #{replaced + conv}"
         end
         replaced += conv
       end
     else
-      puts 'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW'
+      #puts 'WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW'
       replaced = line
     end
-    puts "------FINAL------>>\n#{replaced}"
+    #puts "------FINAL------>>\n#{replaced}"
     if flag == true
-          replaced += "=\n"
+          replaced += "=\r\n"
     end
     return replaced
   end
@@ -62,7 +67,7 @@ module Qprintable
     if line.length>length 
       while line.length>length
         #puts "slicing at #{line.slice(0..length)}"
-        partial_line += (line.slice(0..length-1) + "=" + "\n")
+        partial_line += (line.slice(0..length-1) + "=" + "\r\n")
         line = line.slice!((length)..line.length)
       end 
       partial_line += (line.slice(0..length))
@@ -73,8 +78,8 @@ module Qprintable
   end
 
   def self.additionalreq(line)
-    line.gsub!(" \n", "=C3=20\n")
-    line.gsub!("\t\n", "=C3=09\n")
+    line.gsub!(" \n", "=20\n")
+    line.gsub!("\t\n", "=09\n")
     if line[-1].ord == 9 || line[-1].ord == 32
       line += "="
     end
@@ -82,17 +87,22 @@ module Qprintable
   end
 
   def self.sanitize(message, length = 70, encoding='ascii', inc_C3=true)
-    sanitized = ''
-    message.lines do |line|
-      sanitized += big_line(line, length) 
+    if !message.ascii_only?
+      header = "MIME-Version: 1.0\r\nContent-Type: text/plain;charset='UTF-8'\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n"
+      sanitized = ""
+      message.lines do |line|
+        sanitized += big_line(line, length) 
+      end
+      tmp = ''
+      sanitized.lines do |sline|
+        tmp += replace_chars_ascii(sline,length, encoding, inc_C3)
+      end  
+      sanitized = additionalreq(tmp)
+      puts "this is sanitized \n#{sanitized}"
+      return header + sanitized
+    else
+      return message
     end
-    tmp = ''
-    sanitized.lines do |sline|
-      tmp += replace_chars_ascii(sline,length, encoding, inc_C3)
-    end  
-    sanitized = additionalreq(tmp)
-    puts "this is sanitized #{sanitized}"
-    return sanitized
   end
 
 end

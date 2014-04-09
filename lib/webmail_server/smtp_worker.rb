@@ -1,4 +1,6 @@
 require 'socket'
+require_relative 'qprintable'
+require_relative 'mx_record'
 
 module WebMailServer
 
@@ -54,9 +56,18 @@ module WebMailServer
       @write_opts[:data] = "DATA\n"
 
       #sanitize to rfc2047
-      @write_opts[:body] = "Subject: #{opts["subject"]}\n\n"
+      @write_opts[:body] = "Subject: #{opts["subject"]}\r\n"
       #add mime headers and sanitize to quoted printable
-      @write_opts[:body] += "#{opts["message"]}\r\n.\r\n"
+      begin
+        message = opts["message"]
+        message.force_encoding(Encoding::UTF_8)
+        message = Qprintable.sanitize(message, 70, 'utf', true)
+        puts "Sending this message \n #{message}"
+      rescue => e
+        puts "something went wrong\n #{e.message} \m #{e.backtrace}"
+        message = "MIME-Version: 1.0\r\nContent-Type: text/HTML;charset='UTF-8'\r\nContent-Transfer-Encoding: quoted-printable\n\r\n I =C3=A5r har annuellplanteringarna"
+      end
+      @write_opts[:body] += "#{message}\r\n.\r\n"
 
       @write_opts[:quit] = "QUIT"
     end

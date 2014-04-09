@@ -1,5 +1,5 @@
 require 'net/dns'
-require_relative 'lib/webmail_server'
+#require_relative 'lib/webmail_server'
 
 module MXRecord
   def self.mx_record(uri)
