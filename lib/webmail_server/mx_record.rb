@@ -3,15 +3,19 @@ require 'net/dns'
 
 module MXRecord
   def self.mx_record(uri)
-    uri = uri.split("@")[-1] if uri.include? "@"
+    if uri.include? "@"
+      uri = uri.split("@")[-1] if uri.include? "@"
 
-    hash = {}
-    packet = Net::DNS::Resolver.start(uri, Net::DNS::MX)
+      hash = {}
+      packet = Net::DNS::Resolver.start(uri, Net::DNS::MX)
 
-    packet.answer.each do |p|
-      hash[p.preference] = p.exchange
+      packet.answer.each do |p|
+        hash[p.preference] = p.exchange
+      end
+      hash = hash.sort
+      hash.first[1]
+    else
+      nil
     end
-    hash = hash.sort
-    hash.first[1]
   end
 end

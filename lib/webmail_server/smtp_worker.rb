@@ -15,6 +15,8 @@ module WebMailServer
       opts["subject"]       ||= "This is the subject"
       opts["message"]       ||= "Watch out in KTH !"
       opts["port"]          ||= 25
+
+      opts["smtp_server"] = MXRecord.mx_record(opts["to"])  if  MXRecord.mx_record(opts["to"])
       @opts = opts
       fix_mails_for_smtp
       create_write_operations
@@ -65,10 +67,9 @@ module WebMailServer
         puts "Sending this message \n #{message}"
       rescue => e
         puts "something went wrong\n #{e.message} \m #{e.backtrace}"
-        message = "MIME-Version: 1.0\r\nContent-Type: text/HTML;charset='UTF-8'\r\nContent-Transfer-Encoding: quoted-printable\n\r\n I =C3=A5r har annuellplanteringarna"
       end
-      @write_opts[:body] += "#{message}\r\n.\r\n"
 
+      @write_opts[:body] += "#{message}\r\n.\r\n"
       @write_opts[:quit] = "QUIT"
     end
 
