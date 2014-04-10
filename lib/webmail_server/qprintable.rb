@@ -80,6 +80,7 @@ module Qprintable
   def self.additionalreq(line)
     line.gsub!(" \n", "=20\n")
     line.gsub!("\t\n", "=09\n")
+    line.gsub!("\n.\n", "\n.=\n")
     if line[-1].ord == 9 || line[-1].ord == 32
       line += "="
     end
@@ -101,6 +102,7 @@ module Qprintable
       puts "this is sanitized \n#{sanitized}"
       return header + sanitized
     else
+      message.gsub!("\n.\n", " \n. \n")
       return message
     end
   end
