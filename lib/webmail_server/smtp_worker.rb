@@ -10,29 +10,22 @@ module WebMailServer
     def initialize(opts={})
       @logger = ::Logger.new(STDOUT)
       @logger.level = Logger::DEBUG
-      opts["smtp_server"]        ||= WebMailServer::SMTP_SERVER
+      opts["smtp_server"]   ||= MXRecord.mx_record(opts["to"]) || WebMailServer::SMTP_SERVER
       opts["HELO"]          ||= "client.smtp.ik2213.lab"
       opts["from"]          ||= 'email@kth.se'
       opts["to"]            ||= 'fvas@kth.se'
       opts["subject"]       ||= "This is the subject"
       opts["message"]       ||= "Watch out in KTH !"
       opts["port"]          ||= 25
-#      opts["smtp_server"] = MXRecord.mx_record(opts["to"])  if  MXRecord.mx_record(opts["to"])
-      puts '---------------->>>' + opts["smtp_server"]
+
+      puts '----------SMTP-SERVER----->>>' + opts["smtp_server"]
       @opts = opts
 
-      #parse_swedish
       fix_mails_for_smtp
       create_write_operations
       @log = "Initializing connection..\n"
     end
 
-
-    def parse_swedish
-      @opts["message"] = @opts["message"].force_encoding(Encoding::UTF_8)
-      @opts["message"] = @opts["message"].to_s.gsub("Å","=C3=85").gsub("Ä","=C3=84").gsub("Ö","=C3=96")
-      @opts["message"] = @opts["message"].to_s.gsub("å","=C3=A5").gsub("ä","=C3=A4").gsub("ö","=C3=B6")
-    end
 
     #add safety/validation by checking answer OK"
     #add better error log to be shown in the response html
@@ -71,7 +64,14 @@ module WebMailServer
       @write_opts[:to] = "RCPT to: #{@opts["to"]}"
       @write_opts[:data] = "DATA\n"
       #sanitize to rfc2047
-      @write_opts[:body] = "Subject: #{opts["subject"]}\r\n"
+      begin
+        new_subject = Qprintable.subjectRFC(opts["subject"])
+      rescue
+        puts '-----------------gamw tin panagia sou-----------'
+        new_subject = 'subject failure'
+      end
+      @write_opts[:body] = "Subject: #{new_subject}\r\n"
+#      @write_opts[:body] = "Subject: #{opts["subject"]}\r\n"
       #add mime headers and sanitize to quoted printable
       begin
         message = opts["message"]

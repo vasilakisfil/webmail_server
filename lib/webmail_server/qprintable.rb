@@ -107,4 +107,20 @@ module Qprintable
     end
   end
 
+  def self.subjectRFC(subject)
+    subject.force_encoding(Encoding::UTF_8)
+    if !subject.ascii_only?
+      result = replace_chars_ascii(subject, 70,'utf', false)
+      puts result
+  #    result.gsub!("=", "=#{'='.ord.to_s(16).upcase}")
+      result.gsub!("?", "=#{'?'.ord.to_s(16).upcase}")
+      result.gsub!("_", "=#{'_'.ord.to_s(16).upcase}")
+      result.gsub!(" ", "_")
+      result = "=?iso-8859-1?Q?#{result}?=" 
+      return result.slice(0..74)
+    else
+      return subject
+    end
+  end
+
 end
