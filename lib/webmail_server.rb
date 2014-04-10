@@ -38,9 +38,14 @@ module WebMailServer
       answer_worker = AnswerWorker.new
       client = nil
       loop do
-        client = @tcp_server.accept
-        @logger.debug { "Server accepted new request" }
-        answer_worker.start(client)
+        begin
+          client = @tcp_server.accept
+          @logger.debug { "Server accepted new request" }
+          answer_worker.start(client)
+        rescue Exception => e
+          @logger.debug { "Exception caught:" }
+          @logger.debug { e }
+        end
       end
       stop
     end
