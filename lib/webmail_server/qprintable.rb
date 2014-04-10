@@ -66,7 +66,9 @@ module Qprintable
     partial_line = ''
     if line.length>length 
       while line.length>length
-        #puts "slicing at #{line.slice(0..length)}" partial_line += (line.slice(0..length-1) + "=" + "\r\n") line = line.slice!((length)..line.length)
+        #puts "slicing at #{line.slice(0..length)}"
+        partial_line += (line.slice(0..length-1) + "=" + "\r\n")
+        line = line.slice!((length)..line.length)
       end 
       partial_line += (line.slice(0..length))
     else
@@ -84,7 +86,7 @@ module Qprintable
     return line
   end
 
-  def self.sanitize(message, length = 70, encoding='ascii', inc_C3=true)
+  def self.sanitize(message, length = 70, encoding='utf', inc_C3=true, header_enc = 'iso-8859-1')
     if !message.ascii_only?
       header = "MIME-Version: 1.0\r\nContent-Type: text/plain;charset='iso-8859-1'\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n"
       sanitized = ""
