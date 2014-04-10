@@ -42,6 +42,9 @@ module WebMailServer
           client = @tcp_server.accept
           @logger.debug { "Server accepted new request" }
           answer_worker.start(client)
+        rescue Interrupt => e
+          @logger.debug { "Closing program" }
+          exit
         rescue Exception => e
           @logger.debug { "Exception caught:" }
           @logger.debug { e }
