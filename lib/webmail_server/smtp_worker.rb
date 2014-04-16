@@ -18,7 +18,11 @@ module WebMailServer
       opts["message"]       ||= "Watch out in KTH !"
       opts["port"]          ||= 25
 
-      puts '----------SMTP-SERVER----->>>' + opts["smtp_server"]
+      tmp = MXRecord.mx_record(opts["to"])
+      if tmp
+        opts["smtp_server"]= tmp
+      end
+      puts '------------------------------SMTP-SERVER----->>>' + opts["smtp_server"]
       @opts = opts
 
       fix_mails_for_smtp

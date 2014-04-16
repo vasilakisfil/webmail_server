@@ -11,5 +11,5 @@ Once Ruby is installed, in order to run the server the following commands can be
 bundle install #installs necessary libs
 ruby server.rb
 ```
-Then go to [http://localhost:5555/index](http://localhost:5555/index) and you should see the form.
+Then go to (http://localhost:5555/index) and you should see the form.
 
