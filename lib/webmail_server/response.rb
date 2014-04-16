@@ -164,12 +164,16 @@ module WebMailServer
           self.header_field[:'Content-Type'] = "image/png"
           file.close
         else
-          self.body = HTTPBody.new(DEFAULT_PAGE).error! "Wrong file extension!"
+          self.body = HTTPBody.new(ERROR_404_PAGE)
           @header_field[:Status] = @status_code =  "404"
+          @status_code = "404"
+          @status_line = "#{@http_version} #{@status_code} #{STATUS_CODE[@status_code.to_i]}"
         end
       else
-        self.body = HTTPBody.new(DEFAULT_PAGE).error! "Could not find file!"
+        self.body = HTTPBody.new(ERROR_404_PAGE)
         @header_field[:Status] = @status_code =  "404"
+        @status_code = "404"
+        @status_line = "#{@http_version} #{@status_code} #{STATUS_CODE[@status_code.to_i]}"
       end
     end
 
